@@ -7,6 +7,7 @@ Implements MCMC sampling algorithms (e.g., Metropolis-Hastings).
 import numpy as np
 from math import inf, log
 from tqdm import tqdm
+from matplotlib import pyplot as plt
 
 def metropolis_hastings_single_chain(
     init_params,
@@ -111,6 +112,7 @@ class MCMCResult:
     def __init__(self, chains, acc_rates):
         self.chains = chains
         self.acc_rates = acc_rates
+        self.burn_in = len(chains[0]) // 2
     
     def acceptance_rates(self, verbose=True):
         # Print acceptance rates if verbose
@@ -129,9 +131,25 @@ class MCMCResult:
         post_mean = np.mean(combined, axis=0)
         post_std  = np.std(combined, axis=0)
         
-        return post_mean, post_std  
-    
-    def trace():
-        return self.chains
-    
-    
+        return post_mean, post_std
+          
+    def visualize(self, params, burn_in = None):
+        if burn_in is None:
+            burn_in = len(self.chains[0]) // 2
+        combined = np.concatenate([c[burn_in:] for c in self.chains], axis=0)
+        # plot the trace
+        plt.figure(figsize=(12, 8))
+        for i in range(combined.shape[1]):
+            plt.subplot(2, 2, i + 1)
+            plt.plot(combined[:, i])
+            plt.title(f"Parameter {params[i]}")
+        plt.tight_layout()
+        plt.show()
+        # plot the histogram
+        plt.figure(figsize=(12, 8))
+        for i in range(combined.shape[1]):
+            plt.subplot(2, 2, i + 1)
+            plt.hist(combined[:, i], bins=30)
+            plt.title(f"Parameter {params[i]}")
+        plt.tight_layout()
+        plt.show()
